@@ -273,3 +273,116 @@ Ok, now our counter app works!
 Take a look through the code again. Essentially now the flow is that a React eventHandler calls a callback which then calls `store.dispatch()` to dispatch an action. Inside the dispatch action, we have a call to `render()`, which re-renders our application. So each time someone clicks on our counter button, the store is updated, and then the application is re-rendered.
 
 <p class='util--hide'>View <a href='https://learn.co/lessons/integrating-react-and-redux-codealong'>Integrating React And Redux Codealong</a> on Learn.co and start learning to code for free.</p>
+
+
+``` Javascript
+
+// ./src/index.js
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+import changeCount from './reducers/changeCount';
+import createStore from './createStore';
+
+const store = createStore(changeCount);
+
+export function render() {
+  ReactDOM.render(
+    <App store={store} />,
+    document.getElementById('root')
+  );
+};
+
+store.dispatch({ type: '@@INIT' });
+
+```
+
+
+```Javascript
+// ./src/App.js
+
+import React, { Component } from 'react';
+import Counter from './components/Counter';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App" >
+        <Counter store={this.props.store} />
+      </div>
+    );
+  }
+}
+
+export default App;
+```
+
+
+```Javascript
+
+// ./src/createStore.js
+
+import { render } from './index.js'
+
+export default function createStore(reducer) {
+  let state;
+
+  function dispatch(action) {
+    state = reducer(state, action);
+    console.log(`the state is ${state.count}`);
+    console.log(`the action is ${action.type}`);
+    render();
+  };
+
+  function getState(){
+    return state;
+  };
+
+  return {
+    dispatch,
+    getState
+  };
+};
+
+```
+
+
+```Javascript
+// ./src/components/Counter.js
+
+import React from 'react'
+
+export default (props) => {
+
+  const handleOnClick = () => {
+    props.store.dispatch({ type: 'INCREASE_COUNT'})
+  }
+  return (
+    <div>
+      <button onClick={handleOnClick}>Click Me</button>
+      <div>{props.store.getState().count}</div>
+    </div>
+  )
+};
+
+
+```
+
+
+```Javascript
+// ./src/reducers/changeCount.js
+
+export default function changeCount(state = {
+  count: 0,
+}, action) {
+  switch (action.type) {
+    case 'INCREASE_COUNT':
+      return { count: state.count + 1 };
+    default:
+      return state;
+  };
+};
+
+
+```
